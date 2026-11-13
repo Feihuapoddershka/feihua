@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Фейхоа</title>
+<style>
+:root{--bg:#eef2e0;--card:#fbfcf3;--ink:#1d2f1f;--mut:#5d6f58;--acc:#c23b6b;--acc2:#4c7a3a;--line:#d3dcbf;--onacc:#fff}
+@media (prefers-color-scheme:dark){:root{--bg:#131c16;--card:#1b271f;--ink:#e6eedb;--mut:#93a68c;--acc:#ee6f9a;--acc2:#8fcf6e;--line:#2a3a2d;--onacc:#1a1015}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:env(safe-area-inset-top,0) 0 calc(78px + env(safe-area-inset-bottom,0))}
+#app{max-width:480px;margin:0 auto;padding:12px}
+h1,h3{margin:.4em 0}
+.mut,small{color:var(--mut)}
+.card,header{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px;margin-bottom:12px}
+header .row{display:flex;justify-content:space-between;align-items:center}
+.bal{font-size:34px;font-weight:700;margin:2px 0 8px}
+.bar{height:8px;background:var(--line);border-radius:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc2)}
+.lv{background:var(--acc);color:var(--onacc);border-radius:20px;padding:2px 10px;font-size:14px}
+button{font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;cursor:pointer}
+button:disabled{opacity:.4}
+button.main{background:var(--acc);color:var(--onacc);border-color:var(--acc);font-weight:600}
+button.on{border-color:var(--acc);box-shadow:inset 0 0 0 1px var(--acc)}
+.auth input,.f input{width:100%;font:inherit;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--bg);color:var(--ink);margin:6px 0}
+.auth button{width:100%;margin-top:8px}
+.logo{font-size:56px}
+.center{text-align:center;padding:12px 0}
+.fe{width:220px;height:220px;border-radius:50%;font-size:110px;line-height:1;border:6px solid var(--acc2);background:var(--card);user-select:none;-webkit-user-select:none;touch-action:manipulation;transition:transform .06s}
+.fe:active{transform:scale(.93)}
+.row2{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.row2>*{flex:1 1 auto}
+.case{display:flex;gap:12px;align-items:center}
+.case .ic{font-size:40px}
+.case .t{flex:1}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sp{position:relative;border:2px solid;border-radius:14px;padding:8px 4px;text-align:center;background:var(--card);min-height:96px}
+.sp span{font-size:32px;display:block}
+.sp small{display:block;font-size:12px;line-height:1.2}
+.sp.lock span{filter:grayscale(1);opacity:.35}
+.sp .ct{position:absolute;top:4px;right:6px;font-size:13px}
+.sp button{padding:2px 8px;font-size:13px;margin-top:4px}
+.items{display:flex;gap:8px;flex-wrap:wrap}
+.it{border:2px solid;border-radius:12px;padding:6px 8px;text-align:center;font-size:28px}
+.it small{display:block;font-size:11px}
+.res{font-size:20px;text-align:center;padding:14px 8px}
+.q{margin:8px 0}
+.q .bar{margin-top:4px}
+nav{position:fixed;left:0;right:0;bottom:0;display:flex;background:var(--card);border-top:1px solid var(--line);padding:6px 6px calc(6px + env(safe-area-inset-bottom,0));max-width:480px;margin:0 auto}
+nav button{flex:1;border:0;background:none;padding:6px 0;font-size:12px;color:var(--mut)}
+nav button span{display:block;font-size:22px}
+nav button.on{color:var(--acc);box-shadow:none}
+#toast{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom,0));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:12px;opacity:0;pointer-events:none;transition:opacity .2s;max-width:90%;text-align:center;z-index:5}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app"><header id="top" hidden></header><main id="view"></main></div>
+<nav id="nav" hidden></nav>
+<div id="toast"></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const URL_='https://vptwbtjuxtywahwvrstb.supabase.co',KEY='sb_publishable_Tzfo4MCHIfDMC3Eqw-CE1Q_kGZpt_P1';
+const sb=supabase.createClient(URL_,KEY);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>Number(n).toLocaleString('ru-RU');
+const RAR={common:['Обычные',15,'#6b8f5e'],uncommon:['Необычные',40,'#c9a227'],rare:['Редкие',100,'#3d7fd1'],epic:['Эпические',250,'#8a4fc7'],legendary:['Легендарные',600,'#e0662f']};
+const POOL={common:['🥝','🍃','💧','🌿','🟢','🌱','🥒','🪴'],uncommon:['🟡','☀️','🍯','🟠','🍋','🍂'],rare:['🔵','🧊','🌊','💠','🔷','🌙'],epic:['🟣','⭐','🔥','🌑','🪐'],legendary:['🥇','🌈','👑','🐉','🦅']};
+const CASES=[['wood','Деревянный','🪵',50,'обычные и необычные'],['stone','Каменный','🪨',150,'до эпических'],['gold','Золотой','🏆',400,'до легендарных'],['crystal','Кристальный','💎',800,'больше эпиков'],['divine','Божественный','✨',1500,'25% легендарных']];
+const G={roulette:['Рулетка',[['red','🔴 Красное ×2'],['black','⚫ Чёрное ×2'],['green','🟢 Зелёное ×14']]],slots:['Слоты',[[null,'Крутить']]],dice:['Кости',[['under','Меньше 7 ×2'],['seven','Ровно 7 ×5'],['over','Больше 7 ×2']]],rps:['Камень, ножницы, бумага',[['rock','✊ Камень'],['scissors','✌️ Ножницы'],['paper','✋ Бумага']]],baccarat:['Баккара',[['player','Игрок ×2'],['banker','Банкир ×1,95'],['tie','Ничья ×8']]]};
+const ACH={first_click:'Первый клик',click_100:'100 кликов',case_1:'Первый кейс',case_10:'10 кейсов',games_20:'20 игр',won_1k:'Выиграно 1000',lvl_5:'Уровень 5'};
+const ERR={not_authenticated:'Войди заново',insufficient_funds:'Не хватает очков',bad_promo:'Такого промокода нет',promo_used:'Этот промокод уже использован',no_dups:'Дублей нет',not_enough:'Нужно 5 одинаковой редкости (обычные, необычные, редкие или эпические)',bad_stake:'Минимальная ставка 10'};
+const TABS=[['click','🥝','Клик'],['cases','📦','Кейсы'],['coll','🗂️','Коллекция'],['games','🎰','Игры'],['more','⭐','Ещё']];
+let S=null,tab='click',game='roulette',stake=50,last=null,msg='',pend=0,busy=false,mode='in',lock=false,tt;
+
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2600)}
+async function rpc(fn,a){
+  const {data,error}=await sb.rpc(fn,a||{});
+  if(error){const m=(error.message||'').trim();toast(ERR[m]||m);if(m=='not_authenticated'){S=null;render()}return null}
+  if(data&&data.state)S=data.state;else if(data&&data.nick!==undefined)S=data;
+  if(S)top();return data;
+}
+function top(){
+  const need=80+S.level*40,pct=Math.min(100,S.xp/need*100);
+  const h=$('#top');h.hidden=false;
+  h.innerHTML=`<div class="row"><b>${esc(S.nick)}</b><span class="lv">уровень ${S.level}</span></div><div class="bal">💰 <span id="bal">${fmt(S.balance+pend*10)}</span></div><div class="bar"><i style="width:${pct}%"></i></div><small>${S.xp} из ${need} опыта</small>`;
+}
+function nav(){
+  const n=$('#nav');n.hidden=false;
+  n.innerHTML=TABS.map(t=>`<button class="${tab==t[0]?'on':''}" onclick="go('${t[0]}')"><span>${t[1]}</span>${t[2]}</button>`).join('');
+}
+function go(t){tab=t;render()}
+function render(){
+  if(!S){$('#top').hidden=true;$('#nav').hidden=true;$('#view').innerHTML=vAuth();return}
+  top();nav();$('#view').innerHTML=({click:vClick,cases:vCases,coll:vColl,games:vGames,more:vMore})[tab]();
+}
+
+/* ---------- вход ---------- */
+function vAuth(){return `<div class="card auth center"><div class="logo">🥝</div><h1>Фейхоа</h1><p class="mut">Открывай кейсы, собирай коллекцию, играй. Баланс и выигрыши считает сервер.</p>
+${mode=='up'?'<input id="nick" placeholder="Ник" maxlength="20" autocomplete="nickname">':''}
+<input id="em" type="email" placeholder="Почта" autocomplete="email">
+<input id="pw" type="password" placeholder="Пароль, от 6 символов" autocomplete="${mode=='up'?'new-password':'current-password'}">
+<button class="main" onclick="submitAuth()">${mode=='up'?'Создать аккаунт':'Войти'}</button>
+<button onclick="toggleMode()">${mode=='up'?'У меня уже есть аккаунт':'Создать аккаунт'}</button></div>`}
+function toggleMode(){mode=mode=='up'?'in':'up';render()}
+async function submitAuth(){
+  const email=$('#em').value.trim(),password=$('#pw').value;
+  if(mode=='up'){
+    const nick=$('#nick').value.trim();if(nick.length<2)return toast('Ник: минимум 2 символа');
+    const {data,error}=await sb.auth.signUp({email,password,options:{data:{nick}}});
+    if(error)return toast(/database/i.test(error.message)?'Этот ник уже занят':error.message);
+    if(!data.session)return toast('Подтверди почту по ссылке из письма и войди');
+  }else{
+    const {error}=await sb.auth.signInWithPassword({email,password});
+    if(error)return toast('Неверная почта или пароль');
+  }
+  await boot();
+}
+async function out(){await sb.auth.signOut();S=null;render()}
+async function boot(){const {data}=await sb.auth.getSession();if(data.session)await rpc('get_state');render()}
+
+/* ---------- клик ---------- */
+function vClick(){return `<div class="center"><button class="fe" onpointerdown="tap()">🥝</button><p class="mut">10 очков за клик. С шансом 8% выпадает крит: ещё +25.</p></div>`}
+function tap(){pend++;$('#bal').textContent=fmt(S.balance+pend*10)}
+async function flush(){
+  if(busy||!pend||!S)return;busy=true;const n=Math.min(pend,25);pend-=n;
+  const d=await rpc('click_batch',{p_n:n});busy=false;
+  if(d&&d.crits)toast('Крит ×'+d.crits+'! +'+d.crits*25);
+  if(tab!='click')render();
+}
+setInterval(flush,700);
+
+/* ---------- кейсы ---------- */
+function vCases(){
+  let h='';
+  if(last)h+=`<div class="card"><b>Выпало:</b><div class="items" style="margin-top:8px">${last.map(i=>`<div class="it" style="border-color:${RAR[i.rarity][2]}">${i.emoji}<small>${esc(i.name)}</small></div>`).join('')}</div></div>`;
+  return h+CASES.map(c=>`<div class="card case"><div class="ic">${c[2]}</div><div class="t"><b>${c[1]}</b><br><small>${c[4]}</small><br>💰 ${fmt(c[3])}</div><div style="display:grid;gap:6px"><button class="main" ${S.balance<c[3]?'disabled':''} onclick="openCase('${c[0]}',1)">×1</button><button ${S.balance<c[3]*5?'disabled':''} onclick="openCase('${c[0]}',5)">×5</button></div></div>`).join('');
+}
+async function openCase(k,q){
+  if(lock)return;lock=true;const d=await rpc('open_case',{p_case:k,p_qty:q});lock=false;if(!d)return;
+  last=d.items;if(d.state.collectionJust)toast('Коллекция собрана! +1000');render();scrollTo(0,0);
+}
+
+/* ---------- коллекция ---------- */
+function vColl(){
+  const cnt={},item={},byR={};
+  S.inventory.forEach(i=>{cnt[i.speciesId]=(cnt[i.speciesId]||0)+1;item[i.speciesId]=i;const r=i.rarity||'common';byR[r]=(byR[r]||0)+1});
+  const craftOk=['common','uncommon','rare','epic'].some(r=>(byR[r]||0)>=5);
+  let owned=0,h='';
+  for(const r in POOL){
+    h+=`<h3 style="color:${RAR[r][2]}">${RAR[r][0]}</h3><div class="grid">`;
+    POOL[r].forEach((e,k)=>{const id=r[0]+(k+1),c=cnt[id]||0;if(c)owned++;
+      h+=`<div class="sp ${c?'':'lock'}" style="border-color:${RAR[r][2]}"><span>${e}</span><small>${c?esc(item[id].name):'не найдена'}</small>${c>1?`<b class="ct">×${c}</b><button onclick="sellOne('${id}')">продать +${RAR[r][1]}</button>`:''}</div>`});
+    h+='</div>';
+  }
+  if(cnt['contract-auto-feijoa'])h+=`<h3>Особая</h3><div class="grid"><div class="sp" style="border-color:#ef4444"><span>🔫</span><small>Автоматный фейхуа</small></div></div>`;
+  return `<div class="card"><b>Собрано ${owned} из 30</b><div class="row2"><button onclick="sellAll()">Продать все дубли</button><button class="main" ${craftOk?'':'disabled'} onclick="craft()">Крафт: 5 в 1</button></div><small>Крафт забирает 5 одинаковой редкости и даёт одну на ступень выше.</small></div>`+h;
+}
+async function sellOne(id){const d=await rpc('sell_one',{p_species:id});if(d){toast('Продано за '+d.price);render()}}
+async function sellAll(){const d=await rpc('sell_dups');if(d){toast('Продано '+d.removed+' шт. за '+fmt(d.gained));render()}}
+async function craft(){const d=await rpc('craft');if(d){toast('Получена: '+d.item.emoji+' '+d.item.name);if(d.state.collectionJust)toast('Коллекция собрана! +1000');render()}}
+
+/* ---------- игры ---------- */
+function vGames(){
+  stake=Math.max(10,Math.min(stake,Math.max(10,S.balance)));
+  return `<div class="card"><div class="row2">${Object.keys(G).map(k=>`<button class="${k==game?'on':''}" onclick="setGame('${k}')">${G[k][0]}</button>`).join('')}</div>
+<b>Ставка: ${fmt(stake)}</b><div class="row2">${[10,50,100,500].map(n=>`<button class="${n==stake?'on':''}" onclick="setStake(${n})">${n}</button>`).join('')}<button onclick="setStake(${Math.max(10,S.balance)})">Всё</button></div>
+<div class="row2">${G[game][1].map(p=>`<button class="main" ${S.balance<stake?'disabled':''} onclick="play(${p[0]?`'${p[0]}'`:'null'})">${p[1]}</button>`).join('')}</div></div>${msg?`<div class="card res">${msg}</div>`:''}`;
+}
+function setGame(g){game=g;msg='';render()}
+function setStake(n){stake=n;render()}
+async function play(p){
+  if(lock)return;lock=true;const d=await rpc('play',{p_game:game,p_stake:stake,p_pick:p});lock=false;if(!d)return;
+  const RN={red:'красное 🔴',black:'чёрное ⚫',green:'зелёное 🟢'},RP={rock:'✊',scissors:'✌️',paper:'✋'},OC={win:'победа',lose:'поражение',draw:'ничья'},cd=c=>c.r+c.s;
+  const t=game=='roulette'?'Выпало '+RN[d.result]:game=='slots'?d.reels.join(' '):game=='dice'?`🎲 ${d.a} + ${d.b} = ${d.a+d.b}`:game=='rps'?`Бот выбрал ${RP[d.bot]}: ${OC[d.outcome]}`:`Игрок ${d.player.map(cd).join(' ')} (${d.pv}) против банкира ${d.banker.map(cd).join(' ')} (${d.bv})`;
+  const net=d.win-stake;
+  msg=`${t}<br><b style="color:${net>=0?'var(--acc2)':'var(--acc)'}">${net>0?'+'+fmt(net):net==0?'ставка возвращена':'−'+fmt(-net)}</b>`;
+  render();
+}
+
+/* ---------- ещё ---------- */
+function vMore(){
+  const q=(S.quests.list||[]).map(x=>`<div class="q">${x.claimed?'✅':'⬜'} ${x.name}, награда ${x.rew}<div class="bar"><i style="width:${x.progress/x.need*100}%"></i></div><small>${x.progress} из ${x.need}</small></div>`).join('');
+  const a=Object.keys(ACH).map(k=>`<div>${S.ach[k]?'🏅':'▫️'} ${ACH[k]}</div>`).join('');
+  const st=S.stats;
+  return `<div class="card"><b>Задания на сегодня</b>${q}</div>
+<div class="card"><b>Достижения</b><div style="margin-top:6px">${a}</div></div>
+<div class="card"><b>Статистика</b><div class="mut">Кликов: ${fmt(st.clicks)}<br>Кейсов открыто: ${fmt(st.casesOpened)}<br>Игр сыграно: ${fmt(st.gamesPlayed)}<br>Выиграно всего: ${fmt(st.totalWon)}</div></div>
+<div class="card f"><b>Промокод</b><input id="pc" placeholder="Введи код" autocapitalize="characters"><button class="main" style="width:100%" onclick="promo()">Применить</button></div>
+<button style="width:100%" onclick="out()">Выйти</button>`;
+}
+async function promo(){
+  const d=await rpc('redeem_promo',{p_code:$('#pc').value});
+  if(d){toast('Промокод сработал: '+d.label);render()}
+}
+
+sb.auth.onAuthStateChange((e)=>{if(e=='SIGNED_OUT'){S=null;render()}});
+boot();
+</script>
+</body>
+</html>
